@@ -5,7 +5,7 @@ package freechips.rocketchip.subsystem
 import chisel3._
 import chisel3.dontTouch
 import org.chipsalliance.cde.config.{Field, Parameters}
-import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, CLINTConsts, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryCLINT}
+import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, MTIMERConsts, MSWIConsts, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryCLINT}
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.interrupts._
 import freechips.rocketchip.tile._
@@ -100,7 +100,7 @@ case class TileSlavePortParams(
   */
 trait HasTileInterruptSources
   extends CanHavePeripheryPLIC
-  with CanHavePeripheryCLINT
+  with CanHavePeripheryACLINT
   with InstantiatesTiles
 { this: BaseSubsystem => // TODO ideally this bound would be softened to LazyModule
   /** meipNode is used to create a single bit subsystem input in Configs without a PLIC */
@@ -299,7 +299,7 @@ trait CanAttachTile {
     //    From CLINT: "msip" and "mtip"
     domain.crossIntIn(crossingParams.crossingType) :=
       context.clintOpt.map { _.intnode }
-        .getOrElse { NullIntSource(sources = CLINTConsts.ints) }
+        .getOrElse { NullIntSource(sources = MTIMERConsts.ints + MSWIConsts.ints) }
 
     //    From PLIC: "meip"
     domain.crossIntIn(crossingParams.crossingType) :=

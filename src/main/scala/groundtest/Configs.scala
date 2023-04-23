@@ -28,7 +28,8 @@ class TraceGenBufferlessConfig extends Config(
 class GroundTestBaseConfig extends Config(
   new BaseConfig().alter((site,here,up) => {
     case DebugModuleKey => None
-    case CLINTKey => None
+    case MTIMERKey => None
+    case MSWIKey => None
     case PLICKey => None
     case SubsystemExternalResetVectorKey => true
   })

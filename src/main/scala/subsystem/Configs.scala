@@ -40,7 +40,8 @@ class BaseSubsystemConfig extends Config ((site, here, up) => {
   case BootROMLocated(InSubsystem) => Some(BootROMParams(contentFileName = "./bootrom/bootrom.img"))
   case SubsystemExternalResetVectorKey => false
   case DebugModuleKey => Some(DefaultDebugModuleParams(site(XLen)))
-  case CLINTKey => Some(CLINTParams())
+  case MTIMERKey => Some(MTIMERParams())
+  case MSWIKey => Some(MSWIKey())
   case PLICKey => Some(PLICParams())
   case TilesLocated(InSubsystem) => Nil
 })
