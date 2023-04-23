@@ -21,7 +21,7 @@ object MSWIConsts
     def ints = 1
 }
 
-case MSWIParams(baseAdrress: BigInt = 0x02000000, intStages: Int = 0)
+case class MSWIParams(baseAddress: BigInt = 0x02000000, intStages: Int = 0)
 {
     def address = AddressSet(baseAddress, MSWIConsts.size - 1)
 }
@@ -32,7 +32,7 @@ case class MSWIAttachParams(
     slaveWhere: TLBusWrapperLocation = CBUS
 )
 
-case class MSWIAttachKey extends Field(MSWIAttachParams())
+case object MSWIAttachKey extends Field(MSWIAttachParams())
 
 class MSWI(params: MSWIParams, beatBytes: Int)(implicit p: Parameters) extends LazyModule
 {
@@ -43,8 +43,8 @@ class MSWI(params: MSWIParams, beatBytes: Int)(implicit p: Parameters) extends L
     }
 
     val node: TLRegisterNode = TLRegisterNode(
-        address     = Seq(params.address)
-        device      = device
+        address     = Seq(params.address),
+        device      = device,
         beatBytes   = beatBytes
     )
 
@@ -58,20 +58,20 @@ class MSWI(params: MSWIParams, beatBytes: Int)(implicit p: Parameters) extends L
     class Impl extends LazyModuleImp(this) {
         Annotated.params(this, params)
         require (intnode.edges.in.size == 0, "MSWI only produces interrupts; it does not accept them")
+    
+        val nTiles = intnode.out.size
+        val ipi    = Seq.fill(nTiles) { RegInit(0.U(1.W)) }
+
+        val (intnode_out, _) = intnode.out.unzip
+        intnode_out.zipWithIndex.foreach { case (int, i) =>
+            int(0) := ShiftRegister(ipi(i)(0), params.intStages)
+        }
+
+        node.regmap(
+            0 -> RegFieldGroup ("msip", Some("MSIP Bits"), ipi.zipWithIndex.flatMap{ case (r, i) =>
+            RegField(1, r, RegFieldDesc(s"msip_$i", s"MSIP bit for Hart $i", reset=Some(0))) :: RegField(ipiWidth - 1) :: Nil }),
+        )
     }
-
-    val nTiles = intnode.out.size
-    val ipi    = Seq.fill(nTiles) { RegInit(0.U(1.W)) }
-
-    val (intnode_out, _) = intnode.out.unzip
-    intnode_out.zipWithIndex.foreach { case (int, i) =>
-        int(0) := ShiftRegister(ipi(i)(0), params.intStages)
-    }
-
-    node.regmap(
-        0 -> RegFieldGroup ("msip", Some("MSIP Bits"), ipi.zipWithIndex.flatMap{ case (r, i) =>
-        RegField(1, r, RegFieldDesc(s"msip_$i", s"MSIP bit for Hart $i", reset=Some(0))) :: RegField(ipiWidth - 1) :: Nil }),
-    )
 }
 
 trait CanHavePeripheryMSWI { this: BaseSubsystem => 

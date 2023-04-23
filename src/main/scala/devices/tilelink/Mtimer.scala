@@ -14,15 +14,15 @@ import freechips.rocketchip.util._
 
 object MTIMERConsts
 {
-    def mtimecmpOffset(hart: Int) = 0x4000 + hart * timecmpBytes
+    def mtimecmpOffset(hart: Int) = hart * mtimecmpBytes
     def mtimecmpBytes = 8
     def mtimeWidth = 64
-    def mtimecmpSize = 0x7ff8
-    def mtimeSize = 0x8
+    def mtimecmpSize = 0x8000
+    def mtimeSize = 0x100
     def ints = 1 
 }
 
-case class MTIMERParams(MTIMEBaseAddress: BigInt = 0x0200bff8, MTIMECMPBaseAddress: BigInt = 0x02004000, intStages: Int = 0)
+case class MTIMERParams(MTIMEBaseAddress: BigInt = 0x02010000, MTIMECMPBaseAddress: BigInt = 0x02008000, intStages: Int = 0)
 {
     def mtimeAddress = AddressSet(MTIMEBaseAddress, MTIMERConsts.mtimeSize - 1)
     def mtimecmpAddress = AddressSet(MTIMECMPBaseAddress, MTIMERConsts.mtimecmpSize - 1)
@@ -71,11 +71,11 @@ class MTIMER(params: MTIMERParams, beatBytes: Int)(implicit p: Parameters) exten
             val rtcTick = Input(Bool())
         })
 
-        val time = RegInit(0.U(timeWidth.W))
+        val time = RegInit(0.U(mtimeWidth.W))
         when (io.rtcTick) { time := time + 1.U }
 
         val nTiles = intnode.out.size
-        val timecmp = Seq.fill(nTiles) { Reg(UInt(timeWidth.W)) }
+        val timecmp = Seq.fill(nTiles) { Reg(UInt(mtimeWidth.W)) }
         
         val (intnode_out, _) = intnode.out.unzip
         intnode_out.zipWithIndex.foreach { case (int, i) =>

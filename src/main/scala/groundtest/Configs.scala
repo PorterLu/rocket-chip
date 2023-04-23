@@ -4,7 +4,7 @@
 package freechips.rocketchip.groundtest
 
 import org.chipsalliance.cde.config.Config
-import freechips.rocketchip.devices.tilelink.{CLINTKey, PLICKey}
+import freechips.rocketchip.devices.tilelink.{MTIMERKey, MSWIKey, PLICKey}
 import freechips.rocketchip.devices.debug.{DebugModuleKey}
 import freechips.rocketchip.subsystem._
 import freechips.rocketchip.system.BaseConfig

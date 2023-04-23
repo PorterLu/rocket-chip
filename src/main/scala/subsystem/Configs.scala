@@ -41,7 +41,7 @@ class BaseSubsystemConfig extends Config ((site, here, up) => {
   case SubsystemExternalResetVectorKey => false
   case DebugModuleKey => Some(DefaultDebugModuleParams(site(XLen)))
   case MTIMERKey => Some(MTIMERParams())
-  case MSWIKey => Some(MSWIKey())
+  case MSWIKey => Some(MSWIParams())
   case PLICKey => Some(PLICParams())
   case TilesLocated(InSubsystem) => Nil
 })

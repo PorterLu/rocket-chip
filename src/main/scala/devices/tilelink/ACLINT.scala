@@ -20,21 +20,21 @@ trait CanHavePeripheryACLINT { this: BaseSubsystem =>
         mtimer.mtimecmpNode := tlbus.coupleTo("mtimecmp") { TLFragmenter(tlbus) := _ }
 
         InModuleBody {
-            mtimer.module.clock = tlbus.module.clock
-            mtimer.module.reset = tlbus.module.reset
+            mtimer.module.clock := tlbus.module.clock
+            mtimer.module.reset := tlbus.module.reset
         }
 
         mtimer
     }
 
-    val mswiOpt = p(MSWIKey).map { params = >
+    val mswiOpt = p(MSWIKey).map { params =>
         val tlbus = locateTLBusWrapper(p(MSWIAttachKey).slaveWhere)
         val mswi = LazyModule(new MSWI(params, cbus.beatBytes))
         mswi.node := tlbus.coupleTo("mswi") { TLFragmenter(tlbus) := _ }
         
         InModuleBody {
-            mswi.module.clock = tlbus.module.clock
-            mswi.module.reset = tlbus.module.reset
+            mswi.module.clock := tlbus.module.clock
+            mswi.module.reset := tlbus.module.reset
         }
 
         mswi

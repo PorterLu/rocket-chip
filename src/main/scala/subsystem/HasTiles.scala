@@ -5,7 +5,7 @@ package freechips.rocketchip.subsystem
 import chisel3._
 import chisel3.dontTouch
 import org.chipsalliance.cde.config.{Field, Parameters}
-import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, MTIMERConsts, MSWIConsts, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryCLINT}
+import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, MTIMERConsts, MSWIConsts, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryACLINT}
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.interrupts._
 import freechips.rocketchip.tile._
@@ -298,8 +298,10 @@ trait CanAttachTile {
 
     //    From CLINT: "msip" and "mtip"
     domain.crossIntIn(crossingParams.crossingType) :=
-      context.clintOpt.map { _.intnode }
-        .getOrElse { NullIntSource(sources = MTIMERConsts.ints + MSWIConsts.ints) }
+      context.mtimerOpt.map { _.intnode }.getOrElse { NullIntSource(sources = MTIMERConsts.ints)}
+  
+    domain.crossIntIn(crossingParams.crossingType) :=
+      context.mswiOpt.map { _.intnode }.getOrElse { NullIntSource(sources = MSWIConsts.ints)}
 
     //    From PLIC: "meip"
     domain.crossIntIn(crossingParams.crossingType) :=
