@@ -5,13 +5,14 @@ package freechips.rocketchip.subsystem
 import chisel3._
 import chisel3.dontTouch
 import org.chipsalliance.cde.config.{Field, Parameters}
-import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, MTIMERConsts, MSWIConsts, CLINTKey, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryCLINT}
+import freechips.rocketchip.devices.tilelink.{BasicBusBlocker, BasicBusBlockerParams, MTIMERConsts, MSWIConsts, SSWIConsts, CLINTKey, PLICKey, CanHavePeripheryPLIC, CanHavePeripheryCLINT}
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.interrupts._
 import freechips.rocketchip.tile._
 import freechips.rocketchip.tilelink._
 import freechips.rocketchip.prci.{ClockGroup, ResetCrossingType, ClockGroupNode}
 import freechips.rocketchip.util._
+import freechips.rocketchip.tile._
 
 /** Entry point for Config-uring the presence of Tiles */
 case class TilesLocated(loc: HierarchicalLocation) extends Field[Seq[CanAttachTile]](Nil)
@@ -297,7 +298,7 @@ trait CanAttachTile {
     //    so might need to be synchronized depending on the Tile's crossing type.
 
     //    From ACLINT: "msip" and "mtip"
-    val clintParams = p(CLINTKey).map { params =>
+    p(CLINTKey).map { params =>
       if (params.isACLINT) {
         domain.crossIntIn(crossingParams.crossingType) :=
           context.mswiOpt.map { _.intnode }
@@ -317,6 +318,15 @@ trait CanAttachTile {
     domain.crossIntIn(crossingParams.crossingType) :=
       context.plicOpt .map { _.intnode }
         .getOrElse { context.meipNode.get }
+
+    //    From ACLINT: "ssip"
+    p(CLINTKey).map { params => 
+      if (params.isACLINT && params.sswi.isDefined) {
+        domain.crossIntIn(crossingParams.crossingType) := 
+          context.sswiOpt.map { _.intnode }
+            .getOrElse { NullIntSource(sources = SSWIConsts.ints) }
+      }
+    }
 
     //    From PLIC: "seip" (only if supervisor mode is enabled)
     if (domain.tile.tileParams.core.hasSupervisorMode) {

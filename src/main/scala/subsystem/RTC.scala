@@ -23,7 +23,7 @@ trait HasRTCModuleImp extends LazyModuleImp {
   chisel3.withClockAndReset(pbus.module.clock, pbus.module.reset) {
     val (_, int_rtc_tick) = Counter(true.B, internalPeriod.toInt)
     p(CLINTKey).map { params =>
-      if(params.isACLINT) {
+      if(!params.isACLINT) {
         outer.mswiOpt.map { mtimer =>
           mtimer.module.io.rtcTick := int_rtc_tick
         }
