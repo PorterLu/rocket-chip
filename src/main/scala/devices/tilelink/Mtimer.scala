@@ -11,6 +11,7 @@ import freechips.rocketchip.regmapper._
 import freechips.rocketchip.subsystem._
 import freechips.rocketchip.tilelink._
 import freechips.rocketchip.util._
+import scala.collection.immutable.{ListMap, SortedMap}
 
 object MTIMERConsts
 {
@@ -42,6 +43,24 @@ class MTIMER(params: MTIMERParams, beatBytes: Int)(implicit p: Parameters) exten
 
   val device = new SimpleDevice("mtimer", Seq("riscv,aclint-mtimer")) {
     override val alwaysExtended = true
+    override def describe(resources: ResourceBindings): Description = {
+      val name = describeName(devname, resources)  // the generated device name in device tree
+      val int = describeInterrupts(resources)      // interrupt description
+      val clocks = describeClocks(resources)
+
+      def optDef(x: String, seq: Seq[ResourceValue]) = if (seq.isEmpty) None else Some(x -> seq)
+      val compat = optDef("compatible", Seq("riscv,aclint-mtimer").map(ResourceString(_))) // describe the list of compatiable devices
+
+      val reg = resources.map.filterKeys(DiplomacyUtils.regFilter)
+      val (named, bulk) = reg.partition { case (k, v) => DiplomacyUtils.regName(k).isDefined}
+
+      val names = optDef("reg-names", named.map(x => ResourceString(DiplomacyUtils.regName(x._1).get)).toList) // names of the named address space
+      val regs = optDef("reg", (named ++ bulk).flatMap(_._2.map(_.value)).toList) // address ranges of all spaces (named and bulk)
+
+      deviceNamePlusAddress = name
+
+      Description(name, ListMap() ++ compat ++ int ++ clocks ++ names ++ regs)
+    }
   }
 
   val mtimecmpNode: TLRegisterNode = TLRegisterNode(

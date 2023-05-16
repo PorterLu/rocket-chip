@@ -12,9 +12,9 @@ import freechips.rocketchip.subsystem._
 import freechips.rocketchip.tilelink._
 import freechips.rocketchip.util._
 
-// if isACLINT is false, the code will generate a clint
+// If isACLINT is false, the code will generate a clint
 case class CLINTParams(
-  isACLINT: Boolean = false,
+  isACLINT: Boolean = true,
   mtimer: Option[MTIMERParams]  = Some(MTIMERParams()),
   mswi: Option[MSWIParams]      = Some(MSWIParams())
 ){
@@ -23,7 +23,7 @@ case class CLINTParams(
 
 case object CLINTKey extends Field[Option[CLINTParams]](None)
 
-// if isACLINT is false, a clint will be generated according to base address of mswi device
+// If isACLINT is false, a clint will be generated according to base address of mswi device
 // The Chisel MSWI device will implement the entirety of the CLINT in this case
 trait CanHavePeripheryCLINT { this: BaseSubsystem =>
   val mswiOpt = p(CLINTKey) match { 
