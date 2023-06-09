@@ -6,7 +6,7 @@ endif
 MODEL ?= TestHarness
 PROJECT ?= freechips.rocketchip.system
 CFG_PROJECT ?= $(PROJECT)
-CONFIG ?= $(CFG_PROJECT).DefaultConfig
+CONFIG ?= $(CFG_PROJECT).CYYSoCConfig
 # TODO: For now must match rocketchip.Generator
 comma := ,
 space := $() $()
