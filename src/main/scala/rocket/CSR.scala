@@ -582,6 +582,7 @@ class CSRFile(
   mip.lip := (io.interrupts.lip: Seq[Bool])
   mip.mtip := io.interrupts.mtip
   mip.msip := io.interrupts.msip
+  mip.ssip := io.interrupts.ssip.getOrElse(false.B)
   mip.meip := io.interrupts.meip
   // seip is the OR of reg_mip.seip and the actual line from the PLIC
   io.interrupts.seip.foreach { mip.seip := reg_mip.seip || _ }
