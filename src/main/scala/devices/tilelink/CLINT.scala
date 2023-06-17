@@ -23,10 +23,12 @@ import freechips.rocketchip.util._
 case class CLINTParams(
   isACLINT: Boolean = false,
   mtimer: Option[MTIMERParams]  = None,
-  mswi: Option[MSWIParams]      = Some(MSWIParams())
+  mswi: Option[MSWIParams]      = Some(MSWIParams()),
+  sswi: Option[SSWIParams]      = None,
 ){
   require(mtimer.isDefined || mswi.isDefined, "If both mtimer and mswi are empty, please directly set CLINTKey to empty")
   require(!(!isACLINT && mtimer.isDefined), "The mtimer should not be specified when isACLINT = false")
+  require(!(!isACLINT && sswi.isDefined), "The sswi should not be specified when isACLINT = false")
 }
 
 case object CLINTKey extends Field[Option[CLINTParams]](None)
@@ -77,5 +79,26 @@ trait CanHavePeripheryCLINT { this: BaseSubsystem =>
         mtimerOpt
       }
     case _ => None 
+  }
+
+  val sswiOpt = p(CLINTKey) match {
+    case Some(clintParams) if clintParams.isACLINT =>
+      {
+        val sswiOpt = clintParams.sswi.map { params =>
+          val tlbus = locateTLBusWrapper(p(SSWIAttachKey).slaveWhere)
+          val beatBytes = tlbus.beatBytes
+          val sswi = LazyModule(new SSWI(params, beatBytes))
+          sswi.node := tlbus.coupleTo("sswi") { TLFragmenter(tlbus) := _ }
+          InModuleBody {
+            sswi.module.clock := tlbus.module.clock
+            sswi.module.reset := tlbus.module.reset
+          }
+
+          sswi
+        }
+
+        sswiOpt
+      }
+    case _ => None
   }
 }
