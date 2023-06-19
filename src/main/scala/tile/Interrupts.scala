@@ -19,6 +19,7 @@ class TileInterrupts(implicit p: Parameters) extends CoreBundle()(p) {
   val debug = Bool()
   val mtip = Bool()
   val msip = Bool()
+  val ssip = usingSupervisor.option(Bool())
   val meip = Bool()
   val seip = usingSupervisor.option(Bool())
   val lip = Vec(coreParams.nLocalInterrupts, Bool())
@@ -74,12 +75,14 @@ trait SinksExternalInterrupts { this: BaseTile =>
       core.mtip,
       core.meip)
 
+    val ssip = if (core.ssip.isDefined) Seq(core.ssip.get) else Nils
+
     val seip = if (core.seip.isDefined) Seq(core.seip.get) else Nil
 
     val core_ips = core.lip
 
     val (interrupts, _) = intSinkNode.in(0)
-    (async_ips ++ periph_ips ++ seip ++ core_ips).zip(interrupts).foreach { case(c, i) => c := i }
+    (async_ips ++ periph_ips ++ ssip ++ seip ++ core_ips).zip(interrupts).foreach { case(c, i) => c := i }
   }
 }
 
